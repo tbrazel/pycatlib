@@ -478,3 +478,47 @@ def from_minion_matrix(mat: list, objs=None) -> Category:
         id=id,
         composition=composition,
     )
+
+# Makes the category [n]
+def square_bracket(n:int) -> Category:
+    objects = list(range(n+1))
+    
+    morphisms = []
+    for i in range(n+1):
+        for j in range(i,n+1):
+            morphisms.append(str([i,j]))
+    # Make domain and codomain
+    domain = {}
+    codomain = {}
+    for f in morphisms:
+        flist = f.strip("[]").split(',')
+        flist = [int(x) for x in flist]
+        domain[f] = flist[0]
+        codomain[f] = flist[1]
+    
+    # Make identities
+    id_dictionary = {}
+    for i in range(n+1):
+        id_dictionary[i] = str([i,i])
+    
+    # Make composition
+    composition = {}
+    for f in morphisms:
+        for g in morphisms:
+            # Remember these are strings so we turn them back into lists quick
+            flist = f.strip("[]").split(',')
+            flist = [int(x) for x in flist]
+            glist = g.strip("[]").split(',')
+            glist = [int(x) for x in glist]
+            
+            if glist[1]==flist[0]:
+                composition[(f,g)] = str([glist[0],flist[1]])
+
+    return Category(
+        objects=objects,
+        morphisms=morphisms,
+        domain=domain,
+        codomain=codomain,
+        id=id_dictionary,
+        composition=composition,
+    )
