@@ -328,13 +328,34 @@ class Category:
                 return True
         return False
     
-    def is_weak_factorization_system(self,L,R):
-        # For every square in the category
-        for square in self.squares():
-            # If the left leg is in L and the right leg is in R
-            if square[1][1] in L and square[0][0] in R:
-                if not self.has_lifting(square):
+    # Check if a morphisms f has LLP wrto a class of morphisms R
+    def has_LLP(self,f,R):
+        squares_with_f_on_left = [square for square in self.squares() if square[1][1] == f]
+
+        for sq in squares_with_f_on_left:
+            if sq[0][0] in R:
+                if not self.has_lifting(sq):
                     return False
+        return True
+    
+    def has_RLP(self,f,L):
+        squares_with_f_on_right = [square for square in self.squares() if square[0][0] == f]
+        for sq in squares_with_f_on_right:
+            if sq[1][1] in L:
+                if not self.has_lifting(sq):
+                    return False
+        return True
+    
+    def is_weak_factorization_system(self,L,R):
+        
+        for f in self.morphisms:
+            # If LLP wrto R  is not equivalent to being in L, return false
+            if self.has_LLP(f,R) != (f in L):
+                return False
+            
+            if self.has_RLP(f,L) != (f in R):
+                return False
+        
         return True
     
     def is_model_structure(self,W,C,F):
@@ -358,6 +379,8 @@ class Category:
             return False
         if not self.is_weak_factorization_system(acyclic_cofibrations,F):
             return False
+        
+        # Finally we check 
         return True
 
     def model_structures(self):
