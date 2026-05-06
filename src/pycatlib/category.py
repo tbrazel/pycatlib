@@ -1,3 +1,12 @@
+# Quick package-less power set method, not to be exported
+def power_set(L):
+    # Handle the empty set quickly
+    if not L:
+        return [[]]
+    first = L[0]
+    rest = power_set(L[1:])
+    return rest + [[first] + subset for subset in rest]
+
 class Category:
     def __init__(
         self,
@@ -16,6 +25,7 @@ class Category:
         self.composition = composition
         self.cache = {}
 
+    # Build the morphism f*g, i.e. the arrow g followed by the arrow f
     def comp(self, f, g):
         return self.composition.get((f, g))
 
@@ -219,6 +229,43 @@ class Category:
                 return False
         self.cache["is_idempotent_complete"] = True
         return True
+    
+    # inputting a list L of morphisms, returns true/false depending on whether L satisfies 2-out-of-3
+    def satisfies_two_of_three(self,some_list_of_morphisms):
+        # first sanity check - we need identities on the domain and codomain of every morphism
+        for f in some_list_of_morphisms:
+            if not self.i(self.cod(f)) in some_list_of_morphisms:
+                return False
+            if not self.i(self.dom(f)) in some_list_of_morphisms:
+                return False
+
+        # Supposing that is true, we can continue
+        all_morphisms = self.morphisms
+        for f in all_morphisms:
+            for g in all_morphisms:
+                # If we can form fg
+                if self.cod(g) == self.dom(f):
+                    h = self.comp(f,g);
+                    if f in some_list_of_morphisms and g in some_list_of_morphisms and h not in some_list_of_morphisms:
+                        return False
+                    if f in some_list_of_morphisms and h in some_list_of_morphisms and g not in some_list_of_morphisms:
+                        return False
+                    if g in some_list_of_morphisms and h in some_list_of_morphisms and f not in some_list_of_morphisms:
+                        return False
+        return True
+
+    # Return a list of two-out-of-three-subcats, we'll include the identities here
+    def two_out_of_three_subcats(self):
+
+        list_of_2_of_3_subcats = []
+        # Take the power set of nonidentity morphisms
+        all_candidate_subcats = power_set(self.morphisms)
+        
+        for W in all_candidate_subcats:
+            # If the subcat satisfies 2-of-3
+            if self.satisfies_two_of_three(W):
+                list_of_2_of_3_subcats.append(W)
+        return list_of_2_of_3_subcats
 
     def op(self):
         return Category(
