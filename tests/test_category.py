@@ -155,3 +155,8 @@ def test_ordinal():
         assert ord.has_finite_products() == (n >= 1)
         # is complete iff n≥1
         assert ord.is_finitely_complete() == (n >= 1)
+
+def test_model_cats():
+    bracket2 = square_bracket(2)
+    # assert n=2 of this theorem holds: https://arxiv.org/pdf/2109.07803
+    assert len(bracket2.model_structures())==10
