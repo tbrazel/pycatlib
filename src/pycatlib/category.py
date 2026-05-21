@@ -368,12 +368,27 @@ class Category:
 
     def is_weak_factorization_system(self, L, R):
 
+        # First check that L is the left lifting class of R and R is the right lifting class of L
         for f in self.morphisms:
             # If LLP wrto R  is not equivalent to being in L, return false
             if self.has_LLP(f, R) != (f in L):
                 return False
 
             if self.has_RLP(f, L) != (f in R):
+                return False
+
+        # Next check that every morphism factors as a morphism in L followed by a morphism in R
+        for f in self.morphisms:
+            factors = False
+            for l in L:
+                if self.dom(l) == self.dom(f):
+                    for r in R:
+                        if self.dom(r) == self.cod(l) and self.comp(r, l) == f:
+                            factors = True
+                            break
+                    if factors:
+                        break
+            if not factors:
                 return False
 
         return True
