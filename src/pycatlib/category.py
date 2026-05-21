@@ -517,7 +517,7 @@ def square_bracket(n: int) -> Category:
     for i in range(n + 1):
         for j in range(i, n + 1):
             for k in range(j, n + 1):
-                composition[((i, j), (j, k))] = (i, k)
+                composition[((j, k), (i, j))] = (i, k)
 
     return Category(
         objects=objects,
