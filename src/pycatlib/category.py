@@ -246,19 +246,6 @@ class Category:
                 return False
         return True
 
-    # Return a list of two-out-of-three-subcats, we'll include the identities here
-    def two_out_of_three_subcats(self):
-
-        list_of_2_of_3_subcats = []
-        # Take the power set of nonidentity morphisms
-        all_candidate_subcats = power_set(self.morphisms)
-
-        for W in all_candidate_subcats:
-            # If the subcat satisfies 2-of-3
-            if self.satisfies_two_of_three(W):
-                list_of_2_of_3_subcats.append(W)
-        return list_of_2_of_3_subcats
-
     # Checks if a set W of morphisms turns the category into a "category with weak equivalences"
     def is_cat_with_weak_equivalences(self, W):
         for iso in self.isomorphisms():
