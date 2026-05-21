@@ -231,6 +231,9 @@ class Category:
         self.cache["is_idempotent_complete"] = True
         return True
 
+    def isomorphisms(self):
+        return [f for f in self.morphisms if self.is_iso(f)]
+
     # inputting a list L of morphisms, returns true/false depending on whether L satisfies 2-out-of-3
     def satisfies_two_of_three(self, some_list_of_morphisms):
         # first sanity check - we need identities on the domain and codomain of every morphism
@@ -282,13 +285,13 @@ class Category:
 
     # Checks if a set W of morphisms turns the category into a "category with weak equivalences"
     def is_cat_with_weak_equivalences(self, W):
-        isomorphisms = [f for f in self.morphisms if self.is_iso(f)]
-        for iso in isomorphisms:
+        for iso in self.isomorphisms():
             if not iso in W:
                 return False
 
         if not self.satisfies_two_of_three(W):
             return False
+
         return True
 
     # Returns all possible classes of weak equivalences
