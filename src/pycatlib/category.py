@@ -7,6 +7,7 @@ def power_set(L):
     rest = power_set(L[1:])
     return rest + [[first] + subset for subset in rest]
 
+
 class Category:
     def __init__(
         self,
@@ -229,9 +230,9 @@ class Category:
                 return False
         self.cache["is_idempotent_complete"] = True
         return True
-    
+
     # inputting a list L of morphisms, returns true/false depending on whether L satisfies 2-out-of-3
-    def satisfies_two_of_three(self,some_list_of_morphisms):
+    def satisfies_two_of_three(self, some_list_of_morphisms):
         # first sanity check - we need identities on the domain and codomain of every morphism
         for f in some_list_of_morphisms:
             if not self.i(self.cod(f)) in some_list_of_morphisms:
@@ -245,12 +246,24 @@ class Category:
             for g in all_morphisms:
                 # If we can form fg
                 if self.cod(g) == self.dom(f):
-                    h = self.comp(f,g);
-                    if f in some_list_of_morphisms and g in some_list_of_morphisms and h not in some_list_of_morphisms:
+                    h = self.comp(f, g)
+                    if (
+                        f in some_list_of_morphisms
+                        and g in some_list_of_morphisms
+                        and h not in some_list_of_morphisms
+                    ):
                         return False
-                    if f in some_list_of_morphisms and h in some_list_of_morphisms and g not in some_list_of_morphisms:
+                    if (
+                        f in some_list_of_morphisms
+                        and h in some_list_of_morphisms
+                        and g not in some_list_of_morphisms
+                    ):
                         return False
-                    if g in some_list_of_morphisms and h in some_list_of_morphisms and f not in some_list_of_morphisms:
+                    if (
+                        g in some_list_of_morphisms
+                        and h in some_list_of_morphisms
+                        and f not in some_list_of_morphisms
+                    ):
                         return False
         return True
 
@@ -260,24 +273,24 @@ class Category:
         list_of_2_of_3_subcats = []
         # Take the power set of nonidentity morphisms
         all_candidate_subcats = power_set(self.morphisms)
-        
+
         for W in all_candidate_subcats:
             # If the subcat satisfies 2-of-3
             if self.satisfies_two_of_three(W):
                 list_of_2_of_3_subcats.append(W)
         return list_of_2_of_3_subcats
-    
+
     # Checks if a set W of morphisms turns the category into a "category with weak equivalences"
-    def is_cat_with_weak_equivalences(self,W):
+    def is_cat_with_weak_equivalences(self, W):
         isomorphisms = [f for f in self.morphisms if self.is_iso(f)]
         for iso in isomorphisms:
             if not iso in W:
                 return False
-        
+
         if not self.satisfies_two_of_three(W):
             return False
         return True
-    
+
     # Returns all possible classes of weak equivalences
     def potential_weak_equivalences(self):
         weak_equivalence_subcats = []
@@ -287,9 +300,9 @@ class Category:
                 weak_equivalence_subcats.append(W)
 
         return weak_equivalence_subcats
-    
+
     # Returns all factorizations of a given map
-    def factorizations(self,f):
+    def factorizations(self, f):
         ways_to_factor_f = []
         first_maps = [g for g in self.morphisms if self.dom(g) == self.dom(f)]
         second_maps = [h for h in self.morphisms if self.cod(h) == self.cod(f)]
@@ -297,72 +310,79 @@ class Category:
         for g in first_maps:
             for h in second_maps:
                 if self.cod(g) == self.dom(h):
-                    if self.comp(h,g) == f:
-                        ways_to_factor_f.append([h,g])
+                    if self.comp(h, g) == f:
+                        ways_to_factor_f.append([h, g])
         return ways_to_factor_f
-    
+
     # Returns all commutative squares in the category
     def squares(self):
         all_squares = []
-        
+
         # A square is two factorizations of a map (top left to bottom right)
         for f in self.morphisms:
             L = self.factorizations(f)
             for i in range(len(L)):
-                all_squares.append([L[i],L[i]])
-                for j in range(i+1,len(L)):
-                    all_squares.append([L[i],L[j]])
-                    all_squares.append([L[j],L[i]])
+                all_squares.append([L[i], L[i]])
+                for j in range(i + 1, len(L)):
+                    all_squares.append([L[i], L[j]])
+                    all_squares.append([L[j], L[i]])
         return all_squares
 
     # Verify if a square has lifting
-    def has_lifting(self,square):
+    def has_lifting(self, square):
         top_map = square[0][1]
         bottom_map = square[1][0]
         left_map = square[1][1]
         right_map = square[0][0]
 
         # For all possible ways to fill in the square, see if one works
-        for f in self.hom(self.cod(left_map),self.dom(right_map)):
-            if self.comp(f,left_map) == top_map and self.comp(right_map,f) == bottom_map:
+        for f in self.hom(self.cod(left_map), self.dom(right_map)):
+            if (
+                self.comp(f, left_map) == top_map
+                and self.comp(right_map, f) == bottom_map
+            ):
                 return True
         return False
-    
+
     # Check if a morphisms f has LLP wrto a class of morphisms R
-    def has_LLP(self,f,R):
-        squares_with_f_on_left = [square for square in self.squares() if square[1][1] == f]
+    def has_LLP(self, f, R):
+        squares_with_f_on_left = [
+            square for square in self.squares() if square[1][1] == f
+        ]
 
         for sq in squares_with_f_on_left:
             if sq[0][0] in R:
                 if not self.has_lifting(sq):
                     return False
         return True
-    
-    def has_RLP(self,f,L):
-        squares_with_f_on_right = [square for square in self.squares() if square[0][0] == f]
+
+    def has_RLP(self, f, L):
+        squares_with_f_on_right = [
+            square for square in self.squares() if square[0][0] == f
+        ]
         for sq in squares_with_f_on_right:
             if sq[1][1] in L:
                 if not self.has_lifting(sq):
                     return False
         return True
-    
-    def is_weak_factorization_system(self,L,R):
-        
+
+    def is_weak_factorization_system(self, L, R):
+
         for f in self.morphisms:
             # If LLP wrto R  is not equivalent to being in L, return false
-            if self.has_LLP(f,R) != (f in L):
+            if self.has_LLP(f, R) != (f in L):
                 return False
-            
-            if self.has_RLP(f,L) != (f in R):
+
+            if self.has_RLP(f, L) != (f in R):
                 return False
-        
+
         return True
-    
-    def is_model_structure(self,W,C,F):
+
+    def is_model_structure(self, W, C, F):
         # Check if W turns the category into a cat with weak equivalences
         if not self.is_cat_with_weak_equivalences(W):
             return False
-        
+
         # First sanity check: C and F should contain isos
         isomorphisms = [f for f in self.morphisms if self.is_iso(f)]
         for f in isomorphisms:
@@ -374,27 +394,27 @@ class Category:
         # Now we check the factorization axioms
         acyclic_cofibrations = [f for f in C if f in W]
         acyclic_fibrations = [f for f in F if f in W]
-        
-        if not self.is_weak_factorization_system(C,acyclic_fibrations):
+
+        if not self.is_weak_factorization_system(C, acyclic_fibrations):
             return False
-        if not self.is_weak_factorization_system(acyclic_cofibrations,F):
+        if not self.is_weak_factorization_system(acyclic_cofibrations, F):
             return False
-        
-        # Finally we check 
+
+        # Finally we check
         return True
 
     def model_structures(self):
         list_of_model_structures = []
         all_sets_of_morphisms = power_set(self.morphisms)
         all_potential_weak_equivalences = self.potential_weak_equivalences()
-        
+
         for W in all_potential_weak_equivalences:
             for C in all_sets_of_morphisms:
                 for F in all_sets_of_morphisms:
-                    if self.is_model_structure(W,C,F):
-                        list_of_model_structures.append([W,C,F])
+                    if self.is_model_structure(W, C, F):
+                        list_of_model_structures.append([W, C, F])
         return list_of_model_structures
-    
+
     def op(self):
         return Category(
             objects=self.objects.copy(),
@@ -479,40 +499,41 @@ def from_minion_matrix(mat: list, objs=None) -> Category:
         composition=composition,
     )
 
+
 # Makes the category [n]
-def square_bracket(n:int) -> Category:
-    objects = list(range(n+1))
-    
+def square_bracket(n: int) -> Category:
+    objects = list(range(n + 1))
+
     morphisms = []
-    for i in range(n+1):
-        for j in range(i,n+1):
-            morphisms.append(str([i,j]))
+    for i in range(n + 1):
+        for j in range(i, n + 1):
+            morphisms.append(str([i, j]))
     # Make domain and codomain
     domain = {}
     codomain = {}
     for f in morphisms:
-        flist = f.strip("[]").split(',')
+        flist = f.strip("[]").split(",")
         flist = [int(x) for x in flist]
         domain[f] = flist[0]
         codomain[f] = flist[1]
-    
+
     # Make identities
     id_dictionary = {}
-    for i in range(n+1):
-        id_dictionary[i] = str([i,i])
-    
+    for i in range(n + 1):
+        id_dictionary[i] = str([i, i])
+
     # Make composition
     composition = {}
     for f in morphisms:
         for g in morphisms:
             # Remember these are strings so we turn them back into lists quick
-            flist = f.strip("[]").split(',')
+            flist = f.strip("[]").split(",")
             flist = [int(x) for x in flist]
-            glist = g.strip("[]").split(',')
+            glist = g.strip("[]").split(",")
             glist = [int(x) for x in glist]
-            
-            if glist[1]==flist[0]:
-                composition[(f,g)] = str([glist[0],flist[1]])
+
+            if glist[1] == flist[0]:
+                composition[(f, g)] = str([glist[0], flist[1]])
 
     return Category(
         objects=objects,
