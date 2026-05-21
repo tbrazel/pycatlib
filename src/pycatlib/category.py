@@ -303,16 +303,7 @@ class Category:
 
     # Returns all factorizations of a given map
     def factorizations(self, f):
-        ways_to_factor_f = []
-        first_maps = [g for g in self.morphisms if self.dom(g) == self.dom(f)]
-        second_maps = [h for h in self.morphisms if self.cod(h) == self.cod(f)]
-
-        for g in first_maps:
-            for h in second_maps:
-                if self.cod(g) == self.dom(h):
-                    if self.comp(h, g) == f:
-                        ways_to_factor_f.append([h, g])
-        return ways_to_factor_f
+        return [k for k, v in self.composition.items() if v == f]
 
     # Returns all commutative squares in the category
     def squares(self):
