@@ -235,39 +235,15 @@ class Category:
         return [f for f in self.morphisms if self.is_iso(f)]
 
     # inputting a list L of morphisms, returns true/false depending on whether L satisfies 2-out-of-3
-    def satisfies_two_of_three(self, some_list_of_morphisms):
-        # first sanity check - we need identities on the domain and codomain of every morphism
-        for f in some_list_of_morphisms:
-            if not self.i(self.cod(f)) in some_list_of_morphisms:
+    def satisfies_two_of_three(self, L):
+        # We check all compositions f \circ g = h, and verify that if any two of f,g,h are in the list, then the third is as well
+        for (f, g), h in self.composition.items():
+            if (
+                (f in L and g in L and h not in L)
+                or (f in L and h in L and g not in L)
+                or (g in L and h in L and f not in L)
+            ):
                 return False
-            if not self.i(self.dom(f)) in some_list_of_morphisms:
-                return False
-
-        # Supposing that is true, we can continue
-        all_morphisms = self.morphisms
-        for f in all_morphisms:
-            for g in all_morphisms:
-                # If we can form fg
-                if self.cod(g) == self.dom(f):
-                    h = self.comp(f, g)
-                    if (
-                        f in some_list_of_morphisms
-                        and g in some_list_of_morphisms
-                        and h not in some_list_of_morphisms
-                    ):
-                        return False
-                    if (
-                        f in some_list_of_morphisms
-                        and h in some_list_of_morphisms
-                        and g not in some_list_of_morphisms
-                    ):
-                        return False
-                    if (
-                        g in some_list_of_morphisms
-                        and h in some_list_of_morphisms
-                        and f not in some_list_of_morphisms
-                    ):
-                        return False
         return True
 
     # Return a list of two-out-of-three-subcats, we'll include the identities here
