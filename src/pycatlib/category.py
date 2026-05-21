@@ -259,13 +259,11 @@ class Category:
 
     # Returns all possible classes of weak equivalences
     def potential_weak_equivalences(self):
-        weak_equivalence_subcats = []
-        all_candidate_subcats = power_set(self.morphisms)
-        for W in all_candidate_subcats:
-            if self.is_cat_with_weak_equivalences(W):
-                weak_equivalence_subcats.append(W)
-
-        return weak_equivalence_subcats
+        return [
+            W
+            for W in power_set(self.morphisms)
+            if self.is_cat_with_weak_equivalences(W)
+        ]
 
     # Returns all factorizations of a given map
     def factorizations(self, f):
