@@ -246,36 +246,6 @@ class Category:
                 return False
         return True
 
-    # Checks if a set W of morphisms turns the category into a "category with weak equivalences"
-    def is_cat_with_weak_equivalences(self, W):
-        for iso in self.isomorphisms():
-            if not iso in W:
-                return False
-
-        if not self.satisfies_two_of_three(W):
-            return False
-
-        return True
-
-    # Returns all possible classes of weak equivalences
-    def potential_weak_equivalences(self):
-        isos = []
-        non_isos = []
-        for f in self.morphisms:
-            if self.is_iso(f):
-                isos.append(f)
-            else:
-                non_isos.append(f)
-
-        result = []
-
-        for W in power_set(non_isos):
-            W_with_isos = W + isos
-            if self.satisfies_two_of_three(W_with_isos):
-                result.append(W_with_isos)
-
-        return result
-
     # Returns all factorizations of a given map
     def factorizations(self, f):
         return [k for k, v in self.composition.items() if v == f]
@@ -333,7 +303,6 @@ class Category:
         return True
 
     def is_weak_factorization_system(self, L, R):
-
         # First check that L is the left lifting class of R and R is the right lifting class of L
         for f in self.morphisms:
             # If LLP wrto R  is not equivalent to being in L, return false
@@ -360,40 +329,46 @@ class Category:
         return True
 
     def is_model_structure(self, W, C, F):
-        # Check if W turns the category into a cat with weak equivalences
-        if not self.is_cat_with_weak_equivalences(W):
-            return False
+        AC = [f for f in C if f in W]
+        AF = [f for f in F if f in W]
 
-        # First sanity check: C and F should contain isos
-        isomorphisms = [f for f in self.morphisms if self.is_iso(f)]
-        for f in isomorphisms:
-            if not f in C:
-                return False
-            if not f in F:
-                return False
+        return (
+            self.is_weak_factorization_system(AC, F)
+            and self.is_weak_factorization_system(C, AF)
+            and self.satisfies_two_of_three(W)
+        )
 
-        # Now we check the factorization axioms
-        acyclic_cofibrations = [f for f in C if f in W]
-        acyclic_fibrations = [f for f in F if f in W]
-
-        if not self.is_weak_factorization_system(C, acyclic_fibrations):
-            return False
-        if not self.is_weak_factorization_system(acyclic_cofibrations, F):
-            return False
-
-        # Finally we check
-        return True
+    # Produces all pairwise compositions f \circ g where f is in L1 and g is in L2
+    def pairwise_compositions(self, L1, L2):
+        return set(
+            self.comp(f, g) for f in L1 for g in L2 if self.comp(f, g) is not None
+        )
 
     def model_structures(self):
         list_of_model_structures = []
-        all_sets_of_morphisms = power_set(self.morphisms)
-        all_potential_weak_equivalences = self.potential_weak_equivalences()
 
-        for W in all_potential_weak_equivalences:
-            for C in all_sets_of_morphisms:
-                for F in all_sets_of_morphisms:
-                    if self.is_model_structure(W, C, F):
-                        list_of_model_structures.append([W, C, F])
+        isos = []
+        non_isos = []
+        for f in self.morphisms:
+            if self.is_iso(f):
+                isos.append(f)
+            else:
+                non_isos.append(f)
+
+        # The set of fibrations F could be anything which contains all isos
+        for F0 in power_set(non_isos):
+            F = F0 + isos
+            AC = [f for f in self.morphisms if self.has_LLP(f, F)]
+            if self.is_weak_factorization_system(AC, F):
+                non_AC = [f for f in self.morphisms if f not in AC]
+                for C0 in power_set(non_AC):
+                    C = C0 + AC
+                    AF = [f for f in self.morphisms if self.has_RLP(f, C)]
+                    if self.is_weak_factorization_system(C, AF):
+                        W = list(self.pairwise_compositions(AF, AC))
+                        if self.satisfies_two_of_three(W):
+                            list_of_model_structures.append([W, C, F])
+
         return list_of_model_structures
 
     def op(self):
